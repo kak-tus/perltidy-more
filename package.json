@@ -2,7 +2,7 @@
   "name": "perltidy-more",
   "displayName": "perltidy-more",
   "description": "Extended perltidy",
-  "version": "0.1",
+  "version": "0.2.0",
   "publisher": "Kaktus",
   "engines": {
     "vscode": "^1.11.0"
