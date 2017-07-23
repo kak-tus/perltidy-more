@@ -2,7 +2,7 @@
   "name": "perltidy-more",
   "displayName": "perltidy-more",
   "description": "Extended perltidy",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "publisher": "Kaktus",
   "engines": {
     "vscode": "^1.11.0"
@@ -42,7 +42,13 @@
           "description": "Path to .perltidyrc file"
         }
       }
-    }
+    },
+    "commands": [
+      {
+        "command": "perltidy-more.tidy",
+        "title": "perltidy"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "tsc -p ./",

@@ -13,3 +13,12 @@ This perltidy has some extended features:
 Alternatives
 1. [sfodje perltidy](https://github.com/sfodje/perltidy).
 2. [henriiik intelligence extension](https://github.com/henriiik/vscode-perl) (it can format, but I couldn't get it work).
+
+## Attention
+
+VS Code can have multiple formatting extensions for same language installed, but only one of them (selected by some magical "score") will be using for formatting by formatting key.
+
+If this extension does not work:
+
+1. Try to use it with command (F1 or Ctrl+Shift+P: perltidy).
+2. Try to disable other perl formatting extensions.

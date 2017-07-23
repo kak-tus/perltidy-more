@@ -1,3 +1,6 @@
+0.4.0 2017-07-23
+  - Added command "perltidy" to execute formatting by command.
+
 0.3.0 2017-05-11
   - Readme fix.
 
