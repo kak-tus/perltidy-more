@@ -61,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
   }
 
-  let provider = vscode.languages.registerDocumentRangeFormattingEditProvider('perl', {
+  let provider = vscode.languages.registerDocumentRangeFormattingEditProvider(['perl', 'perl+mojolicious'], {
     provideDocumentRangeFormattingEdits: (document, range, options, token) => {
       return new Promise((resolve, reject) => {
         range = get_range(document, range, null);

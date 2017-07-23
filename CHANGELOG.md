@@ -1,5 +1,6 @@
 0.5.0 2017-07-23
   - Fix perltidy forever execution.
+  - Add new "perl+mojolicious" language id.
 
 0.4.0 2017-07-23
   - Added command "perltidy" to execute formatting by command.
