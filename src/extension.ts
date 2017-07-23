@@ -2,6 +2,7 @@
 
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
+import { dirname } from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
   function get_range(document: vscode.TextDocument, range: vscode.Range, selection: vscode.Selection) {
@@ -33,9 +34,13 @@ export function activate(context: vscode.ExtensionContext) {
       args.push("--profile=" + profile);
     }
 
+    let options = {
+      cwd: dirname(document.uri.fsPath)
+    };
+
     return new Promise((resolve, reject) => {
       try {
-        let worker = spawn(executable, args);
+        let worker = spawn(executable, args, options);
 
         worker.stdin.write(text);
         worker.stdin.end();
@@ -56,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
   }
 
-  let provider = vscode.languages.registerDocumentRangeFormattingEditProvider('perl', {
+  let provider = vscode.languages.registerDocumentRangeFormattingEditProvider(['perl', 'perl+mojolicious'], {
     provideDocumentRangeFormattingEdits: (document, range, options, token) => {
       return new Promise((resolve, reject) => {
         range = get_range(document, range, null);
@@ -101,5 +106,4 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(provider);
   context.subscriptions.push(command);
-
 }
