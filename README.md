@@ -22,3 +22,9 @@ If this extension does not work:
 
 1. Try to use it with command (F1 or Ctrl+Shift+P: perltidy).
 2. Try to disable other perl formatting extensions.
+
+## FAQ
+
+### 1. Q: I'd like to use .perltidyrc specific to different projects.
+
+A: Use "perltidy-more.profile" option and set it to ".../.perltidyrc". Three dots is perltidy specific option to indicates that the file should be searched for starting in the current directory and working upwards. This makes it easier to have multiple projects each with their own .perltidyrc in their root directories.

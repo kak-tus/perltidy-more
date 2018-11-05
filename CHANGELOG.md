@@ -1,3 +1,6 @@
+0.5.1 2018-11-06
+  - Readme and option description fix.
+
 0.5.0 2017-07-23
   - Fix perltidy forever execution.
   - Add new "perl+mojolicious" language id.
