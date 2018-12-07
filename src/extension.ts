@@ -38,6 +38,11 @@ export function activate(context: vscode.ExtensionContext) {
       cwd: dirname(document.uri.fsPath)
     };
 
+    // Support for spawn at virtual filesystems
+    if (document.uri.scheme != "file") {
+      options.cwd = ".";
+    }
+
     return new Promise((resolve, reject) => {
       try {
         let worker = spawn(executable, args, options);

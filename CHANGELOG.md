@@ -1,3 +1,6 @@
+0.5.2 2018-12-07
+  - Partial support for virtual filesystems like SSH FS (without support of .perltidyrc from virtual fs). Thanks to j-ecko.
+
 0.5.1 2018-11-06
   - Readme and option description fix.
 

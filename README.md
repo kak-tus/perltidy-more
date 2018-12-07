@@ -9,6 +9,7 @@ This perltidy has some extended features:
 - It has [github repository](https://github.com/kak-tus/perltidy-more) (now sfodje perltidy has [repository](https://github.com/sfodje/perltidy) too).
 - It can format large perl files (in my case sfodje extension had 10 or 20 KB file limit. I don't know why it happened).
 - It can format selected text.
+- Partial support for virtual filesystems (without support of .perltidyrc from virtual fs).
 
 Alternatives
 1. [sfodje perltidy](https://github.com/sfodje/perltidy).
