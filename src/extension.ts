@@ -2,7 +2,8 @@
 
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
+import { existsSync } from 'fs';
 
 export function activate(context: vscode.ExtensionContext) {
   function get_range(document: vscode.TextDocument, range: vscode.Range, selection: vscode.Selection) {
@@ -28,6 +29,17 @@ export function activate(context: vscode.ExtensionContext) {
     let executable = config.get('executable', '');
     let profile = config.get('profile', '');
 
+
+    let currentWorkspaceFolder = vscode.workspace.getWorkspaceFolder(
+      vscode.window.activeTextEditor.document.uri
+    ).uri.path;
+
+    if (config.get('autoDisable', false)) {
+      if (!existsSync(join(currentWorkspaceFolder, profile || '.perltidyrc'))) {
+        return;
+      }
+    }
+
     let args: string[] = ["-st"];
 
     if (profile) {
@@ -35,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     let options = {
-      cwd: dirname(document.uri.fsPath)
+      cwd: currentWorkspaceFolder
     };
 
     // Support for spawn at virtual filesystems
