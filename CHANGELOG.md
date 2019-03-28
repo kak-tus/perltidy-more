@@ -1,3 +1,6 @@
+0.5.3 2019-03-29
+  - Add option to disable perltidy. Thanks to pmb0.
+
 0.5.2 2018-12-07
   - Partial support for virtual filesystems like SSH FS (without support of .perltidyrc from virtual fs). Thanks to j-ecko.
 
