@@ -29,13 +29,12 @@ export function activate(context: vscode.ExtensionContext) {
     let executable = config.get('executable', '');
     let profile = config.get('profile', '');
 
+    let currentWorkspace = vscode.workspace.getWorkspaceFolder(
+      document.uri
+    )
 
-    let currentWorkspaceFolder = vscode.workspace.getWorkspaceFolder(
-      vscode.window.activeTextEditor.document.uri
-    ).uri.path;
-
-    if (config.get('autoDisable', false)) {
-      if (!existsSync(join(currentWorkspaceFolder, profile || '.perltidyrc'))) {
+    if (config.get('autoDisable', false) && currentWorkspace!=null) {
+      if (!existsSync(join(currentWorkspace.uri.path, '.perltidyrc'))) {
         return;
       }
     }
@@ -47,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     let options = {
-      cwd: currentWorkspaceFolder
+      cwd: dirname(document.uri.fsPath)
     };
 
     // Support for spawn at virtual filesystems
