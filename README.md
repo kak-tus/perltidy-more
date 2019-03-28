@@ -10,6 +10,7 @@ This perltidy has some extended features:
 - It can format large perl files (in my case sfodje extension had 10 or 20 KB file limit. I don't know why it happened).
 - It can format selected text.
 - Partial support for virtual filesystems like SSH FS (without support of .perltidyrc from virtual fs).
+- Option to enable perltidy only with existing .perltidyrc in project.
 
 Alternatives
 1. [sfodje perltidy](https://github.com/sfodje/perltidy).
