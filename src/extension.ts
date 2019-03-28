@@ -2,7 +2,8 @@
 
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
+import { existsSync } from 'fs';
 
 export function activate(context: vscode.ExtensionContext) {
   function get_range(document: vscode.TextDocument, range: vscode.Range, selection: vscode.Selection) {
@@ -27,6 +28,16 @@ export function activate(context: vscode.ExtensionContext) {
 
     let executable = config.get('executable', '');
     let profile = config.get('profile', '');
+
+    let currentWorkspace = vscode.workspace.getWorkspaceFolder(
+      document.uri
+    )
+
+    if (config.get('autoDisable', false) && currentWorkspace!=null) {
+      if (!existsSync(join(currentWorkspace.uri.path, '.perltidyrc'))) {
+        return;
+      }
+    }
 
     let args: string[] = ["-st"];
 
