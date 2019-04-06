@@ -1,3 +1,6 @@
+0.5.4 2019-04-06
+  - Logo for Marketplace.
+
 0.5.3 2019-03-29
   - Add option to disable perltidy. Thanks to pmb0.
 
