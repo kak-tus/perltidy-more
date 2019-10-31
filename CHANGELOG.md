@@ -1,3 +1,6 @@
+0.5.5 2019-10-31
+  - Readme for simplify usage.
+
 0.5.4 2019-04-06
   - Logo for Marketplace.
 

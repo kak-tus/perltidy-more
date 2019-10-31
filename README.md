@@ -24,6 +24,7 @@ If this extension does not work:
 
 1. Try to use it with command (F1 or Ctrl+Shift+P: perltidy).
 2. Try to disable other perl formatting extensions.
+3. Try to install perltidy binary from your OS repository.
 
 ## FAQ
 
