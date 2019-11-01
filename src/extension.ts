@@ -97,6 +97,43 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  let formatOnTypeProvider = vscode.languages.registerOnTypeFormattingEditProvider(['perl', 'perl+mojolicious'], {
+    provideOnTypeFormattingEdits: (document, position, ch, options, token) => {
+      return new Promise((resolve, reject) => {
+        // Determine start position. start format from the next line of the previous ';'.
+        let start = new vscode.Position(0, 0);
+        let lineNumber = position.line - 1;
+        while (lineNumber >= 0) {
+          const line = document.lineAt(lineNumber);
+          const indexOfSemicolon = line.text.lastIndexOf(';');
+          if (indexOfSemicolon >= 0) {
+            start = new vscode.Position(lineNumber + 1, 0);
+            break;
+          }
+          lineNumber--;
+        }
+        const range = new vscode.Range(start, position);
+
+        const promise = tidy(document, range);
+        if (!promise) {
+          reject();
+          return;
+        }
+
+        promise.then((res: string) => {
+          if (token.isCancellationRequested) {
+            reject();
+            return;
+          }
+          const result: vscode.TextEdit[] = [];
+          // remove last newsline
+          result.push(new vscode.TextEdit(range, res.replace(/\n$/, '')));
+          resolve(result);
+        });
+      });
+    }
+  }, ';', '}', ')', ']');
+
   let command = vscode.commands.registerCommand('perltidy-more.tidy', () => {
     let editor = vscode.window.activeTextEditor;
     if (!editor) {
@@ -121,5 +158,6 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   context.subscriptions.push(provider);
+  context.subscriptions.push(formatOnTypeProvider);
   context.subscriptions.push(command);
 }
