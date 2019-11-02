@@ -11,6 +11,7 @@ This perltidy has some extended features:
 - It can format selected text.
 - Partial support for virtual filesystems like SSH FS (without support of .perltidyrc from virtual fs).
 - Option to enable perltidy only with existing .perltidyrc in project.
+- FormatOnType support (you can enable it in settings).
 
 Alternatives
 1. [sfodje perltidy](https://github.com/sfodje/perltidy).

@@ -1,3 +1,6 @@
+0.6.0 2019-11-03
+  - FormatOnType support. Thanks to @hitode909.
+
 0.5.5 2019-10-31
   - Readme for simplify usage.
 
