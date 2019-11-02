@@ -6,6 +6,7 @@ import { dirname, join } from 'path';
 import { existsSync } from 'fs';
 
 export function activate(context: vscode.ExtensionContext) {
+  const selector = ['perl', 'perl+mojolicious'];
   function get_range(document: vscode.TextDocument, range: vscode.Range, selection: vscode.Selection) {
     if (!(selection === null) && !selection.isEmpty) {
       range = new vscode.Range(selection.start, selection.end);
@@ -77,7 +78,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
   }
 
-  let provider = vscode.languages.registerDocumentRangeFormattingEditProvider(['perl', 'perl+mojolicious'], {
+  let provider = vscode.languages.registerDocumentRangeFormattingEditProvider(selector, {
     provideDocumentRangeFormattingEdits: (document, range, options, token) => {
       return new Promise((resolve, reject) => {
         range = get_range(document, range, null);
@@ -96,6 +97,43 @@ export function activate(context: vscode.ExtensionContext) {
       });
     }
   });
+
+  let formatOnTypeProvider = vscode.languages.registerOnTypeFormattingEditProvider(selector, {
+    provideOnTypeFormattingEdits: (document, position, ch, options, token) => {
+      return new Promise((resolve, reject) => {
+        // Determine start position. start format from the next line of the previous ';'.
+        let start = new vscode.Position(0, 0);
+        let lineNumber = position.line - 1;
+        while (lineNumber >= 0) {
+          const line = document.lineAt(lineNumber);
+          const indexOfSemicolon = line.text.lastIndexOf(';');
+          if (indexOfSemicolon >= 0) {
+            start = new vscode.Position(lineNumber + 1, 0);
+            break;
+          }
+          lineNumber--;
+        }
+        const range = new vscode.Range(start, position);
+
+        const promise = tidy(document, range);
+        if (!promise) {
+          reject();
+          return;
+        }
+
+        promise.then((res: string) => {
+          if (token.isCancellationRequested) {
+            reject();
+            return;
+          }
+          const result: vscode.TextEdit[] = [];
+          // remove last newsline
+          result.push(new vscode.TextEdit(range, res.replace(/\n$/, '')));
+          resolve(result);
+        });
+      });
+    }
+  }, ';', '}', ')', ']');
 
   let command = vscode.commands.registerCommand('perltidy-more.tidy', () => {
     let editor = vscode.window.activeTextEditor;
@@ -121,5 +159,6 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   context.subscriptions.push(provider);
+  context.subscriptions.push(formatOnTypeProvider);
   context.subscriptions.push(command);
 }
