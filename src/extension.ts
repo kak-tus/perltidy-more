@@ -55,6 +55,11 @@ export function activate(context: vscode.ExtensionContext) {
       options.cwd = ".";
     }
 
+    // Support for executing relative path script from the current workspace. eg: ./script/perltidy-wrapper.pl
+    if (executable[0] === '.') {
+      options.cwd = currentWorkspace.uri.path;
+    }
+
     return new Promise((resolve, reject) => {
       try {
         let worker = spawn(executable, args, options);
