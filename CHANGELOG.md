@@ -1,3 +1,6 @@
+0.6.1 2019-11-26
+  - Support for relative path to perltidy binary. Thanks to @hitode909.
+
 0.6.0 2019-11-03
   - FormatOnType support. Thanks to @hitode909.
 

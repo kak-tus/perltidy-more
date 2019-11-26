@@ -12,6 +12,7 @@ This perltidy has some extended features:
 - Partial support for virtual filesystems like SSH FS (without support of .perltidyrc from virtual fs).
 - Option to enable perltidy only with existing .perltidyrc in project.
 - FormatOnType support (you can enable it in settings).
+- Support for relative path to perltidy binary. Set perltidy-more.executable to relative path and it will be search it in workspace folder.
 
 Alternatives
 1. [sfodje perltidy](https://github.com/sfodje/perltidy).
@@ -32,3 +33,12 @@ If this extension does not work:
 ### 1. Q: I'd like to use .perltidyrc specific to different projects.
 
 A: Use "perltidy-more.profile" option and set it to ".../.perltidyrc". Three dots is perltidy specific option to indicates that the file should be searched for starting in the current directory and working upwards. This makes it easier to have multiple projects each with their own .perltidyrc in their root directories.
+
+### 2. Q: I'd like to run perltidy in docker container.
+
+A: Use shell script like this and set it as perltidy-more.executable in options
+
+```
+#!/usr/bin/env sh
+exec docker run --rm -i -v "$PWD":/app -w /app avastsoftware/perltidy $@
+```
