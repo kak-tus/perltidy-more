@@ -94,6 +94,16 @@ export function activate(context: vscode.ExtensionContext) {
 
   let provider = vscode.languages.registerDocumentRangeFormattingEditProvider(selector, {
     provideDocumentRangeFormattingEdits: (document, range, options, token) => {
+      // To keep indent level, expand the range to include the beginning of the line.
+      // "  [do {]" -> "[  do {]"
+      //
+      // Don't expand if there is a non-whitespace character between the beginning of the line and the range
+      // "return [do {]" -> "return [do {]"
+      const indentRange = new vscode.Range(new vscode.Position(range.start.line, 0), range.start);
+      if (document.getText(indentRange).match(/^\s*$/)) {
+        range = new vscode.Range(new vscode.Position(range.start.line, 0), range.end);
+      }
+
       return new Promise((resolve, reject) => {
         range = get_range(document, range, null);
 
