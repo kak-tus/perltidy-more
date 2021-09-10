@@ -23,7 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   function tidy(document: vscode.TextDocument, range: vscode.Range) {
     let text = document.getText(range);
-    if (!text || text.length === 0) return;
+    if (!text || text.length === 0) return new Promise((resolve) => { resolve('') });
 
     let config = vscode.workspace.getConfiguration('perltidy-more');
 
