@@ -40,7 +40,14 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
 
-    let args: string[] = ["-st"];
+    let args: string[] = [
+      "--standard-output",
+      // Terminal newline causes a problem when formatting selection.
+      // We cannot determine whether the terminal newline is from original code, or appended by perltidy.
+      // With terminal newline: "foo\n" -> "foo\n", "foo" -> "foo\n"
+      // Expected result:       "foo\n" -> "foo\n", "foo" -> "foo"
+      "-no-add-terminal-newline",
+    ];
 
     if (profile) {
       args.push("--profile=" + profile);
@@ -82,7 +89,6 @@ export function activate(context: vscode.ExtensionContext) {
           result_text += chunk;
         });
         worker.stdout.on('end', () => {
-          result_text.trim();
           resolve(result_text);
         });
       }
@@ -151,8 +157,7 @@ export function activate(context: vscode.ExtensionContext) {
             return;
           }
           const result: vscode.TextEdit[] = [];
-          // remove last newsline
-          result.push(new vscode.TextEdit(range, res.replace(/\n$/, '')));
+          result.push(new vscode.TextEdit(range, res));
           resolve(result);
         });
       });
