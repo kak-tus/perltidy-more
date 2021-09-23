@@ -1,4 +1,4 @@
-0.7.1 2021-09-23
+0.7.0 2021-09-23
   - Support for relative path to perltidy binary. Thanks to @hitode909.
   - Latest dependencies. Thanks to @mizdra.
 
