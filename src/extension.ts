@@ -23,7 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   function tidy(document: vscode.TextDocument, range: vscode.Range) {
     let text = document.getText(range);
-    if (!text || text.length === 0) return;
+    if (!text || text.length === 0) return new Promise((resolve) => { resolve('') });
 
     let config = vscode.workspace.getConfiguration('perltidy-more');
 
@@ -40,7 +40,14 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
 
-    let args: string[] = ["-st"];
+    let args: string[] = [
+      "--standard-output",
+      // Terminal newline causes a problem when formatting selection.
+      // We cannot determine whether the terminal newline is from original code, or appended by perltidy.
+      // With terminal newline: "foo\n" -> "foo\n", "foo" -> "foo\n"
+      // Expected result:       "foo\n" -> "foo\n", "foo" -> "foo"
+      "-no-add-terminal-newline",
+    ];
 
     if (profile) {
       args.push("--profile=" + profile);
@@ -82,7 +89,6 @@ export function activate(context: vscode.ExtensionContext) {
           result_text += chunk;
         });
         worker.stdout.on('end', () => {
-          result_text.trim();
           resolve(result_text);
         });
       }
@@ -94,6 +100,16 @@ export function activate(context: vscode.ExtensionContext) {
 
   let provider = vscode.languages.registerDocumentRangeFormattingEditProvider(selector, {
     provideDocumentRangeFormattingEdits: (document, range, options, token) => {
+      // To keep indent level, expand the range to include the beginning of the line.
+      // "  [do {]" -> "[  do {]"
+      //
+      // Don't expand if there is a non-whitespace character between the beginning of the line and the range
+      // "return [do {]" -> "return [do {]"
+      const indentRange = new vscode.Range(new vscode.Position(range.start.line, 0), range.start);
+      if (document.getText(indentRange).match(/^\s*$/)) {
+        range = new vscode.Range(new vscode.Position(range.start.line, 0), range.end);
+      }
+
       return new Promise((resolve, reject) => {
         range = get_range(document, range, null);
 
@@ -141,8 +157,7 @@ export function activate(context: vscode.ExtensionContext) {
             return;
           }
           const result: vscode.TextEdit[] = [];
-          // remove last newsline
-          result.push(new vscode.TextEdit(range, res.replace(/\n$/, '')));
+          result.push(new vscode.TextEdit(range, res));
           resolve(result);
         });
       });
