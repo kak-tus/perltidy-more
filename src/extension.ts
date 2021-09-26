@@ -43,7 +43,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     if (config.get('autoDisable', false) && currentWorkspace != null) {
       if (!existsSync(join(currentWorkspace.uri.path, '.perltidyrc'))) {
-        return;
+        // Failed to format because `.perltidyrc` not found.
+        return Promise.resolve(undefined);
       }
     }
 
