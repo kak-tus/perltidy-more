@@ -97,6 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
         worker.stdin.end();
 
         let result_text = '';
+        let error_text = '';
 
         worker.on('error', (e) => {
           if (isErrnoException(e) && e.code === 'ENOENT') {
@@ -113,9 +114,20 @@ export function activate(context: vscode.ExtensionContext) {
         worker.stdout.on('data', (chunk) => {
           result_text += chunk;
         });
+        worker.stderr.on('data', (chunk) => {
+          error_text += chunk;
+        });
 
         worker.on('close', (code) => {
-          resolve(result_text);
+          if (code !== 0) {
+            if (error_text === '') {
+              reject(new FormatError(`Format failed. Perltidy exited with exit code ${code}.`));
+            } else {
+              reject(new FormatError(`Format failed. Perltidy exited with exit code ${code}. Error messages: ${error_text}`));
+            }
+          } else {
+            resolve(result_text);
+          }
         });
       }
       catch (error) {
