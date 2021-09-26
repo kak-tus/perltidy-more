@@ -129,7 +129,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         let promise = tidy(document, range);
         if (!promise) {
-          reject();
           return;
         }
 
@@ -161,13 +160,11 @@ export function activate(context: vscode.ExtensionContext) {
 
         const promise = tidy(document, range);
         if (!promise) {
-          reject();
           return;
         }
 
         promise.then((res: string) => {
           if (token.isCancellationRequested) {
-            reject();
             return;
           }
           const result: vscode.TextEdit[] = [];
