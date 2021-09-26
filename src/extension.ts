@@ -177,7 +177,7 @@ export function activate(context: vscode.ExtensionContext) {
   }, ';', '}', ')', ']');
 
   let command = vscode.commands.registerCommand('perltidy-more.tidy', () => {
-    let editor = vscode.window.activeTextEditor;
+    const editor = vscode.window.activeTextEditor;
     if (!editor) {
       return;
     }
