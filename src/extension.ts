@@ -100,6 +100,8 @@ export function activate(context: vscode.ExtensionContext) {
         let error_text = '';
 
         worker.on('error', (e) => {
+          // When the process fails to start, terminate, or send a message to the process
+          // ref: https://nodejs.org/api/child_process.html#child_process_event_error
           if (isErrnoException(e) && e.code === 'ENOENT') {
             if (executable === 'perltidy') {
               reject(new FormatError(`Format failed. Executable file (\`${executable}\`) is not found. You probably forgot to install perltidy.`));
@@ -120,6 +122,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         worker.on('close', (code) => {
           if (code !== 0) {
+            // ref: http://perltidy.sourceforge.net/perltidy.html#ERROR-HANDLING
             if (error_text === '') {
               reject(new FormatError(`Format failed. Perltidy exited with exit code ${code}.`));
             } else {
