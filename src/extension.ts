@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 import { dirname, join, isAbsolute } from 'path';
 import { existsSync } from 'fs';
+import { FormatError } from './error';
 
 export function activate(context: vscode.ExtensionContext) {
   const selector = ['perl', 'perl+mojolicious'];
@@ -25,10 +26,10 @@ export function activate(context: vscode.ExtensionContext) {
    * format text by perltidy.
    * @param document Documents containing text 
    * @param range Range of text
-   * @returns Returns the formatted text. However, if the formatting fails due to incorrect configuration, etc.,
-   * `undefined` will be returned.
+   * @returns Returns the formatted text.
+   * @throws {import('./error').FormatError} Throw an error if failed to format.
    */
-  function tidy(document: vscode.TextDocument, range: vscode.Range): Promise<string | undefined> {
+  function tidy(document: vscode.TextDocument, range: vscode.Range): Promise<string> {
     let text = document.getText(range);
     if (!text || text.length === 0) return new Promise((resolve) => { resolve('') });
 
@@ -42,15 +43,12 @@ export function activate(context: vscode.ExtensionContext) {
     )
 
     if (currentWorkspace === undefined) {
-      // Failed to format because this extension does not support
-      // to format files that do not belong to a workspace.
-      return Promise.resolve(undefined);
+      throw new FormatError('Format failed. File must be belong to one workspace at least.');
     }
 
     if (config.get('autoDisable', false)) {
       if (!existsSync(join(currentWorkspace.uri.path, '.perltidyrc'))) {
-        // Failed to format because `.perltidyrc` not found.
-        return Promise.resolve(undefined);
+        throw new FormatError('Format failed. `.perltidyrc` not found.');
       }
     }
 
