@@ -8,7 +8,7 @@ import { FormatError } from './error';
 
 export function activate(context: vscode.ExtensionContext) {
   const selector = ['perl', 'perl+mojolicious'];
-  function get_range(document: vscode.TextDocument, range: vscode.Range, selection: vscode.Selection) {
+  function get_range(document: vscode.TextDocument, range: vscode.Range | null, selection: vscode.Selection | null) {
     if (!(selection === null) && !selection.isEmpty) {
       range = new vscode.Range(selection.start, selection.end);
     }
