@@ -28,6 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
    * @param range Range of text
    * @returns Returns the formatted text.
    * @throws {import('./error').FormatError} Throw an error if failed to format.
+   * @throws {unknown} Throw an error an unexpected problem has occurred.
    */
   function tidy(document: vscode.TextDocument, range: vscode.Range): Promise<string> {
     let text = document.getText(range);
@@ -105,6 +106,7 @@ export function activate(context: vscode.ExtensionContext) {
         });
       }
       catch (error) {
+        // internal error
         reject(error);
       }
     });
