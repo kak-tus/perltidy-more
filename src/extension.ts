@@ -113,7 +113,8 @@ export function activate(context: vscode.ExtensionContext) {
         worker.stdout.on('data', (chunk) => {
           result_text += chunk;
         });
-        worker.stdout.on('end', () => {
+
+        worker.on('close', (code) => {
           resolve(result_text);
         });
       }
