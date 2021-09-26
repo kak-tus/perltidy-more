@@ -21,7 +21,14 @@ export function activate(context: vscode.ExtensionContext) {
     return range;
   }
 
-  function tidy(document: vscode.TextDocument, range: vscode.Range) {
+  /**
+   * format text by perltidy.
+   * @param document Documents containing text 
+   * @param range Range of text
+   * @returns Returns the formatted text. However, if the formatting fails due to incorrect configuration, etc.,
+   * `undefined` will be returned.
+   */
+  function tidy(document: vscode.TextDocument, range: vscode.Range): Promise<string | undefined> {
     let text = document.getText(range);
     if (!text || text.length === 0) return new Promise((resolve) => { resolve('') });
 
