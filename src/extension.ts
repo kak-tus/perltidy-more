@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 import { dirname, join, isAbsolute } from 'path';
 import { existsSync } from 'fs';
-import { FormatError } from './error';
+import { FormatError, handleTidyError } from './error';
 
 export function activate(context: vscode.ExtensionContext) {
   const selector = ['perl', 'perl+mojolicious'];
@@ -137,7 +137,7 @@ export function activate(context: vscode.ExtensionContext) {
           let result: vscode.TextEdit[] = [];
           result.push(new vscode.TextEdit(range, res));
           resolve(result);
-        });
+        }).catch(handleTidyError);
       });
     }
   });
@@ -173,7 +173,7 @@ export function activate(context: vscode.ExtensionContext) {
           const result: vscode.TextEdit[] = [];
           result.push(new vscode.TextEdit(range, res));
           resolve(result);
-        });
+        }).catch(handleTidyError);
       });
     }
   }, ';', '}', ')', ']');
@@ -198,7 +198,7 @@ export function activate(context: vscode.ExtensionContext) {
       editor.edit((builder: vscode.TextEditorEdit) => {
         builder.replace(range, res);
       });
-    });
+    }).catch(handleTidyError);
   });
 
   context.subscriptions.push(provider);
