@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 import { dirname, join, isAbsolute } from 'path';
 import { existsSync } from 'fs';
-import { FormatError, handleTidyError } from './error';
+import { FormatError, handleTidyError, isErrnoException } from './error';
 
 export function activate(context: vscode.ExtensionContext) {
   const selector = ['perl', 'perl+mojolicious'];
@@ -99,7 +99,15 @@ export function activate(context: vscode.ExtensionContext) {
         let result_text = '';
 
         worker.on('error', (e) => {
-          reject(e);
+          if (isErrnoException(e) && e.code === 'ENOENT') {
+            if (executable === 'perltidy') {
+              reject(new FormatError(`Format failed. Executable file (\`${executable}\`) is not found. You probably forgot to install perltidy.`));
+            } else {
+              reject(new FormatError(`Format failed. Executable file (\`${executable}\`) is not found.`));
+            }
+          } else {
+            reject(e);
+          }
         });
 
         worker.stdout.on('data', (chunk) => {
