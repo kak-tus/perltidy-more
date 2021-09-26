@@ -98,6 +98,10 @@ export function activate(context: vscode.ExtensionContext) {
 
         let result_text = '';
 
+        worker.on('error', (e) => {
+          reject(e);
+        });
+
         worker.stdout.on('data', (chunk) => {
           result_text += chunk;
         });
