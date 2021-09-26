@@ -26,11 +26,11 @@ export function activate(context: vscode.ExtensionContext) {
    * format text by perltidy.
    * @param document Documents containing text 
    * @param range Range of text
-   * @returns Returns the formatted text.
+   * @returns Returns the formatted text. However, Returns `undefined` if formatting is skipped.
    * @throws {import('./error').FormatError} Throw an error if failed to format.
    * @throws {unknown} Throw an error an unexpected problem has occurred.
    */
-  function tidy(document: vscode.TextDocument, range: vscode.Range): Promise<string> {
+  function tidy(document: vscode.TextDocument, range: vscode.Range): Promise<string | undefined> {
     let text = document.getText(range);
     if (!text || text.length === 0) return new Promise((resolve) => { resolve('') });
 
@@ -49,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     if (config.get('autoDisable', false)) {
       if (!existsSync(join(currentWorkspace.uri.path, '.perltidyrc'))) {
-        throw new FormatError('Format failed. `.perltidyrc` not found.');
+        return Promise.resolve(undefined);
       }
     }
 
@@ -128,6 +128,7 @@ export function activate(context: vscode.ExtensionContext) {
 
       try {
         let res = await tidy(document, range);
+        if (res === undefined) return;
         let result: vscode.TextEdit[] = [];
         result.push(new vscode.TextEdit(range, res));
         return result;
@@ -156,7 +157,7 @@ export function activate(context: vscode.ExtensionContext) {
 
       try {
         const res = await tidy(document, range);
-        if (token.isCancellationRequested) {
+        if (res === undefined || token.isCancellationRequested) {
           return;
         }
         const result: vscode.TextEdit[] = [];
@@ -181,7 +182,8 @@ export function activate(context: vscode.ExtensionContext) {
     let range = get_range(document, null, selection);
 
     try {
-      let res = await tidy(document, range);
+      const res = await tidy(document, range);
+      if (res === undefined) return;
       editor.edit((builder: vscode.TextEditorEdit) => {
         builder.replace(range, res);
       });
