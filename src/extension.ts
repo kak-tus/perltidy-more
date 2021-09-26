@@ -113,7 +113,7 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   let provider = vscode.languages.registerDocumentRangeFormattingEditProvider(selector, {
-    provideDocumentRangeFormattingEdits: (document, range, options, token) => {
+    provideDocumentRangeFormattingEdits: async (document, range, options, token) => {
       // To keep indent level, expand the range to include the beginning of the line.
       // "  [do {]" -> "[  do {]"
       //
@@ -124,23 +124,22 @@ export function activate(context: vscode.ExtensionContext) {
         range = new vscode.Range(new vscode.Position(range.start.line, 0), range.end);
       }
 
-      return new Promise((resolve, reject) => {
-        range = get_range(document, range, null);
+      range = get_range(document, range, null);
 
-        let promise = tidy(document, range);
-
-        promise.then((res: string) => {
-          let result: vscode.TextEdit[] = [];
-          result.push(new vscode.TextEdit(range, res));
-          resolve(result);
-        }).catch(handleTidyError);
-      });
+      try {
+        let res = await tidy(document, range);
+        let result: vscode.TextEdit[] = [];
+        result.push(new vscode.TextEdit(range, res));
+        return result;
+      } catch (e) {
+        handleTidyError(e);
+        return;
+      }
     }
   });
 
   let formatOnTypeProvider = vscode.languages.registerOnTypeFormattingEditProvider(selector, {
-    provideOnTypeFormattingEdits: (document, position, ch, options, token) => {
-      return new Promise((resolve, reject) => {
+    provideOnTypeFormattingEdits: async (document, position, ch, options, token) => {
         // Determine start position. start format from the next line of the previous ';'.
         let start = new vscode.Position(0, 0);
         let lineNumber = position.line - 1;
@@ -155,21 +154,22 @@ export function activate(context: vscode.ExtensionContext) {
         }
         const range = new vscode.Range(start, position);
 
-        const promise = tidy(document, range);
-
-        promise.then((res: string) => {
-          if (token.isCancellationRequested) {
-            return;
-          }
-          const result: vscode.TextEdit[] = [];
-          result.push(new vscode.TextEdit(range, res));
-          resolve(result);
-        }).catch(handleTidyError);
-      });
+      try {
+        const res = await tidy(document, range);
+        if (token.isCancellationRequested) {
+          return;
+        }
+        const result: vscode.TextEdit[] = [];
+        result.push(new vscode.TextEdit(range, res));
+        return result;
+      } catch (e) {
+        handleTidyError(e);
+        return;
+      }
     }
   }, ';', '}', ')', ']');
 
-  let command = vscode.commands.registerCommand('perltidy-more.tidy', () => {
+  let command = vscode.commands.registerCommand('perltidy-more.tidy', async () => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
       return;
@@ -180,13 +180,15 @@ export function activate(context: vscode.ExtensionContext) {
 
     let range = get_range(document, null, selection);
 
-    let promise = tidy(document, range);
-
-    promise.then((res: string) => {
+    try {
+      let res = await tidy(document, range);
       editor.edit((builder: vscode.TextEditorEdit) => {
         builder.replace(range, res);
       });
-    }).catch(handleTidyError);
+    } catch (e) {
+      handleTidyError(e);
+      return;
+    }
   });
 
   context.subscriptions.push(provider);
