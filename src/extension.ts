@@ -128,9 +128,6 @@ export function activate(context: vscode.ExtensionContext) {
         range = get_range(document, range, null);
 
         let promise = tidy(document, range);
-        if (!promise) {
-          return;
-        }
 
         promise.then((res: string) => {
           let result: vscode.TextEdit[] = [];
@@ -159,9 +156,6 @@ export function activate(context: vscode.ExtensionContext) {
         const range = new vscode.Range(start, position);
 
         const promise = tidy(document, range);
-        if (!promise) {
-          return;
-        }
 
         promise.then((res: string) => {
           if (token.isCancellationRequested) {
@@ -187,9 +181,6 @@ export function activate(context: vscode.ExtensionContext) {
     let range = get_range(document, null, selection);
 
     let promise = tidy(document, range);
-    if (!promise) {
-      return;
-    }
 
     promise.then((res: string) => {
       editor.edit((builder: vscode.TextEditorEdit) => {
