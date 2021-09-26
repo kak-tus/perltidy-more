@@ -37,9 +37,15 @@ export function activate(context: vscode.ExtensionContext) {
     var executable = config.get('executable', '');
     let profile = config.get('profile', '');
 
-    let currentWorkspace = vscode.workspace.getWorkspaceFolder(
+    const currentWorkspace = vscode.workspace.getWorkspaceFolder(
       document.uri
     )
+
+    if (currentWorkspace === undefined) {
+      // Failed to format because this extension does not support
+      // to format files that do not belong to a workspace.
+      return Promise.resolve(undefined);
+    }
 
     if (config.get('autoDisable', false) && currentWorkspace != null) {
       if (!existsSync(join(currentWorkspace.uri.path, '.perltidyrc'))) {
