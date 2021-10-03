@@ -1,3 +1,6 @@
+0.7.2 2021-10-04
+  - Remove debug message.
+
 0.7.1 2021-10-04
   - Fix work on old perltidy.
 

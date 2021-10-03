@@ -54,7 +54,6 @@ export function activate(context: vscode.ExtensionContext) {
 
   promise.then((version: Number) => {
     perltidyVersion = version
-    vscode.window.showErrorMessage(version.toString())
   })
 
   function get_range(document: vscode.TextDocument, range: vscode.Range, selection: vscode.Selection) {
