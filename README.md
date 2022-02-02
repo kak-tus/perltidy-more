@@ -40,5 +40,5 @@ A: Use shell script like this and set it as perltidy-more.executable in options
 
 ```
 #!/usr/bin/env sh
-exec docker run --rm -i -v "$PWD":/app -w /app avastsoftware/perltidy $@
+exec docker run --rm -i -v "$PWD":/app -w /app avastsoftware/perltidy "$@"
 ```
