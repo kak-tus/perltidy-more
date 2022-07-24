@@ -1,3 +1,6 @@
+0.8.0 2022-07-25
+  - Error handling support. Thanks to @mizdra.
+
 0.7.2 2021-10-04
   - Remove debug message.
 
