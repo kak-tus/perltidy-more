@@ -18,7 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
     return executable
   }
 
-  function getPerltidyVersion() {
+  function getPerltidyVersion(): Promise<Number> {
     const executable = getExecutable()
 
     const args: string[] = [
@@ -73,7 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   /**
    * format text by perltidy.
-   * @param document Documents containing text 
+   * @param document Documents containing text
    * @param range Range of text
    * @returns Returns the formatted text. However, Returns `undefined` if formatting is skipped.
    * @throws {import('./error').FormatError} Throw an error if failed to format.
