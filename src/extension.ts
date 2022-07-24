@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 import { dirname, join, isAbsolute } from 'path';
 import { existsSync } from 'fs';
-import { FormatError, handleTidyError } from './error';
+import { FormatError, handleTidyError, isErrnoException } from './error';
 
 export function activate(context: vscode.ExtensionContext) {
   const selector = ['perl', 'perl+mojolicious'];
@@ -147,12 +147,40 @@ export function activate(context: vscode.ExtensionContext) {
         worker.stdin.end();
 
         let result_text = '';
+        let error_text = '';
+
+        worker.on('error', (e) => {
+          // When the process fails to start, terminate, or send a message to the process
+          // ref: https://nodejs.org/api/child_process.html#child_process_event_error
+          if (isErrnoException(e) && e.code === 'ENOENT') {
+            if (executable === 'perltidy') {
+              reject(new FormatError(`Format failed. Executable file (\`${executable}\`) is not found. You probably forgot to install perltidy.`));
+            } else {
+              reject(new FormatError(`Format failed. Executable file (\`${executable}\`) is not found.`));
+            }
+          } else {
+            reject(e);
+          }
+        });
 
         worker.stdout.on('data', (chunk) => {
           result_text += chunk;
         });
-        worker.stdout.on('end', () => {
-          resolve(result_text);
+        worker.stderr.on('data', (chunk) => {
+          error_text += chunk;
+        });
+
+        worker.on('close', (code) => {
+          if (code !== 0) {
+            // ref: http://perltidy.sourceforge.net/perltidy.html#ERROR-HANDLING
+            if (error_text === '') {
+              reject(new FormatError(`Format failed. Perltidy exited with exit code ${code}.`));
+            } else {
+              reject(new FormatError(`Format failed. Perltidy exited with exit code ${code}. Error messages: ${error_text}`));
+            }
+          } else {
+            resolve(result_text);
+          }
         });
       }
       catch (error) {

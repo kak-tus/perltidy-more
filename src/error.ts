@@ -11,3 +11,8 @@ export function handleTidyError (error: unknown) {
     vscode.window.showErrorMessage(`Internal error: ${error}`);
   }
 }
+
+/** Whether the error is compatible with `NodeJS.ErrnoException` or not. */
+export function isErrnoException (e: unknown): e is NodeJS.ErrnoException {
+  return e instanceof Error;
+}
