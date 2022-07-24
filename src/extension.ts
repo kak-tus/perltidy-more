@@ -37,13 +37,13 @@ export function activate(context: vscode.ExtensionContext) {
         worker.stdout.on('end', () => {
           const res = resultText.match(/\d+/)
           if (res === null) {
-            resolve(0)
+            reject('Fail to execute pertidy to get version, check it is installed')
             return
           }
 
           const version = Number(res[0])
           resolve(version)
-        });
+        })
       }
       catch (error) {
         reject(error)
@@ -51,11 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
     })
   }
 
-  const promise = getPerltidyVersion()
-
-  promise.then((version: Number) => {
-    perltidyVersion = version
-  })
+  const promiseVersion = getPerltidyVersion()
 
   function get_range(document: vscode.TextDocument, range: vscode.Range | null, selection: vscode.Selection | null) {
     if (!(selection === null) && !selection.isEmpty) {
@@ -247,7 +243,13 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  context.subscriptions.push(provider);
-  context.subscriptions.push(formatOnTypeProvider);
-  context.subscriptions.push(command);
+  promiseVersion.then((version: Number) => {
+    perltidyVersion = version
+
+    context.subscriptions.push(provider);
+    context.subscriptions.push(formatOnTypeProvider);
+    context.subscriptions.push(command);
+  }).catch(error => {
+    vscode.window.showErrorMessage(error)
+  })
 }
