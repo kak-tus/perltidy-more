@@ -5,17 +5,16 @@
 // ${fileDirname}: the current opened file's dirname
 // ${fileExtname}: the current opened file's extension
 // ${cwd}: the current working directory of the spawned process
-// A task runner that calls a custom npm script that compiles the extension.
+// A task runner that calls a custom yarn script that compiles the extension.
 {
   "version": "2.0.0",
-  // we want to run npm
-  "command": "npm",
+  // we want to run yarn
+  "command": "yarn",
   // we run the custom script "compile" as defined in package.json
   "args": [
+    "--silent",
     "run",
-    "compile",
-    "--loglevel",
-    "silent"
+    "compile"
   ],
   // The tsc compiler is started in watching mode
   "isBackground": true,

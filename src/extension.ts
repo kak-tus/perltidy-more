@@ -8,6 +8,55 @@ import { FormatError, handleTidyError } from './error';
 
 export function activate(context: vscode.ExtensionContext) {
   const selector = ['perl', 'perl+mojolicious'];
+  let perltidyVersion: Number
+
+  function getExecutable() {
+    let config = vscode.workspace.getConfiguration('perltidy-more')
+
+    var executable = config.get('executable', '')
+
+    return executable
+  }
+
+  function getPerltidyVersion() {
+    const executable = getExecutable()
+
+    const args: string[] = [
+      "--version"
+    ]
+
+    return new Promise((resolve, reject) => {
+      try {
+        let worker = spawn(executable, args)
+
+        let resultText = ''
+
+        worker.stdout.on('data', (chunk) => {
+          resultText += chunk
+        });
+        worker.stdout.on('end', () => {
+          const res = resultText.match(/\d+/)
+          if (res === null) {
+            resolve(0)
+            return
+          }
+
+          const version = Number(res[0])
+          resolve(version)
+        });
+      }
+      catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  const promise = getPerltidyVersion()
+
+  promise.then((version: Number) => {
+    perltidyVersion = version
+  })
+
   function get_range(document: vscode.TextDocument, range: vscode.Range | null, selection: vscode.Selection | null) {
     if (!(selection === null) && !selection.isEmpty) {
       range = new vscode.Range(selection.start, selection.end);
@@ -36,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     let config = vscode.workspace.getConfiguration('perltidy-more');
 
-    var executable = config.get('executable', '');
+    var executable = getExecutable();
     let profile = config.get('profile', '');
 
     const currentWorkspace = vscode.workspace.getWorkspaceFolder(
@@ -54,16 +103,21 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     let args: string[] = [
-      "--standard-output",
-      // Terminal newline causes a problem when formatting selection.
-      // We cannot determine whether the terminal newline is from original code, or appended by perltidy.
-      // With terminal newline: "foo\n" -> "foo\n", "foo" -> "foo\n"
-      // Expected result:       "foo\n" -> "foo\n", "foo" -> "foo"
-      "-no-add-terminal-newline",
+      "--standard-output"
     ];
 
     if (profile) {
       args.push("--profile=" + profile);
+    }
+
+    // Only supported starts with this version
+    if (perltidyVersion >= 20210625) {
+      // Terminal newline causes a problem when formatting selection.
+      // We cannot determine whether the terminal newline is from original code, or appended by perltidy.
+      // With terminal newline: "foo\n" -> "foo\n", "foo" -> "foo\n"
+      // Expected result:       "foo\n" -> "foo\n", "foo" -> "foo"
+
+      args.push("--no-add-terminal-newline");
     }
 
     let options = {
