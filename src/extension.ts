@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 import { dirname, join, isAbsolute } from 'path';
 import { existsSync } from 'fs';
+import { FormatError, handleTidyError } from './error';
 
 export function activate(context: vscode.ExtensionContext) {
   const selector = ['perl', 'perl+mojolicious'];
@@ -56,7 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
     perltidyVersion = version
   })
 
-  function get_range(document: vscode.TextDocument, range: vscode.Range, selection: vscode.Selection) {
+  function get_range(document: vscode.TextDocument, range: vscode.Range | null, selection: vscode.Selection | null) {
     if (!(selection === null) && !selection.isEmpty) {
       range = new vscode.Range(selection.start, selection.end);
     }
@@ -70,7 +71,15 @@ export function activate(context: vscode.ExtensionContext) {
     return range;
   }
 
-  function tidy(document: vscode.TextDocument, range: vscode.Range) {
+  /**
+   * format text by perltidy.
+   * @param document Documents containing text 
+   * @param range Range of text
+   * @returns Returns the formatted text. However, Returns `undefined` if formatting is skipped.
+   * @throws {import('./error').FormatError} Throw an error if failed to format.
+   * @throws {unknown} Throw an error an unexpected problem has occurred.
+   */
+  function tidy(document: vscode.TextDocument, range: vscode.Range): Promise<string | undefined> {
     let text = document.getText(range);
     if (!text || text.length === 0) return new Promise((resolve) => { resolve('') });
 
@@ -79,13 +88,17 @@ export function activate(context: vscode.ExtensionContext) {
     var executable = getExecutable();
     let profile = config.get('profile', '');
 
-    let currentWorkspace = vscode.workspace.getWorkspaceFolder(
+    const currentWorkspace = vscode.workspace.getWorkspaceFolder(
       document.uri
     )
 
-    if (config.get('autoDisable', false) && currentWorkspace != null) {
+    if (currentWorkspace === undefined) {
+      throw new FormatError('Format failed. File must be belong to one workspace at least.');
+    }
+
+    if (config.get('autoDisable', false)) {
       if (!existsSync(join(currentWorkspace.uri.path, '.perltidyrc'))) {
-        return new Promise((resolve) => { resolve('') });
+        return Promise.resolve(undefined);
       }
     }
 
@@ -147,13 +160,14 @@ export function activate(context: vscode.ExtensionContext) {
         });
       }
       catch (error) {
+        // internal error
         reject(error);
       }
     });
   }
 
   let provider = vscode.languages.registerDocumentRangeFormattingEditProvider(selector, {
-    provideDocumentRangeFormattingEdits: (document, range, options, token) => {
+    provideDocumentRangeFormattingEdits: async (document, range, options, token) => {
       // To keep indent level, expand the range to include the beginning of the line.
       // "  [do {]" -> "[  do {]"
       //
@@ -164,27 +178,23 @@ export function activate(context: vscode.ExtensionContext) {
         range = new vscode.Range(new vscode.Position(range.start.line, 0), range.end);
       }
 
-      return new Promise((resolve, reject) => {
-        range = get_range(document, range, null);
+      range = get_range(document, range, null);
 
-        let promise = tidy(document, range);
-        if (!promise) {
-          reject();
-          return;
-        }
-
-        promise.then((res: string) => {
-          let result: vscode.TextEdit[] = [];
-          result.push(new vscode.TextEdit(range, res));
-          resolve(result);
-        });
-      });
+      try {
+        let res = await tidy(document, range);
+        if (res === undefined) return;
+        let result: vscode.TextEdit[] = [];
+        result.push(new vscode.TextEdit(range, res));
+        return result;
+      } catch (e) {
+        handleTidyError(e);
+        return;
+      }
     }
   });
 
   let formatOnTypeProvider = vscode.languages.registerOnTypeFormattingEditProvider(selector, {
-    provideOnTypeFormattingEdits: (document, position, ch, options, token) => {
-      return new Promise((resolve, reject) => {
+    provideOnTypeFormattingEdits: async (document, position, ch, options, token) => {
         // Determine start position. start format from the next line of the previous ';'.
         let start = new vscode.Position(0, 0);
         let lineNumber = position.line - 1;
@@ -199,27 +209,23 @@ export function activate(context: vscode.ExtensionContext) {
         }
         const range = new vscode.Range(start, position);
 
-        const promise = tidy(document, range);
-        if (!promise) {
-          reject();
+      try {
+        const res = await tidy(document, range);
+        if (res === undefined || token.isCancellationRequested) {
           return;
         }
-
-        promise.then((res: string) => {
-          if (token.isCancellationRequested) {
-            reject();
-            return;
-          }
-          const result: vscode.TextEdit[] = [];
-          result.push(new vscode.TextEdit(range, res));
-          resolve(result);
-        });
-      });
+        const result: vscode.TextEdit[] = [];
+        result.push(new vscode.TextEdit(range, res));
+        return result;
+      } catch (e) {
+        handleTidyError(e);
+        return;
+      }
     }
   }, ';', '}', ')', ']');
 
-  let command = vscode.commands.registerCommand('perltidy-more.tidy', () => {
-    let editor = vscode.window.activeTextEditor;
+  let command = vscode.commands.registerCommand('perltidy-more.tidy', async () => {
+    const editor = vscode.window.activeTextEditor;
     if (!editor) {
       return;
     }
@@ -229,16 +235,16 @@ export function activate(context: vscode.ExtensionContext) {
 
     let range = get_range(document, null, selection);
 
-    let promise = tidy(document, range);
-    if (!promise) {
-      return;
-    }
-
-    promise.then((res: string) => {
+    try {
+      const res = await tidy(document, range);
+      if (res === undefined) return;
       editor.edit((builder: vscode.TextEditorEdit) => {
         builder.replace(range, res);
       });
-    });
+    } catch (e) {
+      handleTidyError(e);
+      return;
+    }
   });
 
   context.subscriptions.push(provider);
