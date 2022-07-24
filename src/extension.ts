@@ -38,7 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
         worker.stdout.on('end', () => {
           const res = resultText.match(/\d+/)
           if (res === null) {
-            reject('Fail to execute pertidy to get version, check it is installed')
+            reject(`Load failed. We can't get version from executable file (\`${executable}\`). You probably forgot to install perltidy.`)
             return
           }
 
