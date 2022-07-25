@@ -8,7 +8,7 @@ import { FormatError, handleTidyError, isErrnoException } from './error'
 
 export function activate(context: vscode.ExtensionContext) {
   const selector = ['perl', 'perl+mojolicious']
-  let perltidyVersion: Number
+  let perltidyVersion: Number = 0
 
   function getExecutable() {
     let config = vscode.workspace.getConfiguration('perltidy-more')
@@ -53,6 +53,12 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   const promiseVersion = getPerltidyVersion()
+
+  promiseVersion.then((version: Number) => {
+    perltidyVersion = version
+  }).catch(error => {
+    vscode.window.showErrorMessage(error)
+  })
 
   function get_range(document: vscode.TextDocument, range: vscode.Range | null, selection: vscode.Selection | null) {
     if (!(selection === null) && !selection.isEmpty) {
@@ -282,13 +288,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   })
 
-  promiseVersion.then((version: Number) => {
-    perltidyVersion = version
-
-    context.subscriptions.push(provider)
-    context.subscriptions.push(formatOnTypeProvider)
-    context.subscriptions.push(command)
-  }).catch(error => {
-    vscode.window.showErrorMessage(error)
-  })
+  context.subscriptions.push(provider)
+  context.subscriptions.push(formatOnTypeProvider)
+  context.subscriptions.push(command)
 }
