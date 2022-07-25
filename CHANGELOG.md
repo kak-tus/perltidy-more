@@ -1,3 +1,6 @@
+0.8.2 2022-07-25
+  - Improve vscode start phase.
+
 0.8.1 2022-07-25
   - Back try format, when to pertidy version found.
 
