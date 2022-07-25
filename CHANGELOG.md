@@ -2,7 +2,7 @@
   - Improve vscode start phase.
 
 0.8.1 2022-07-25
-  - Back try format, when to pertidy version found.
+  - Back try format, when no pertidy version found.
 
 0.8.0 2022-07-25
   - Error handling support. Thanks to @mizdra.
