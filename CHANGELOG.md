@@ -1,3 +1,6 @@
+0.8.3 2025-05-08
+  - #20 Try fix work on windows.
+
 0.8.2 2022-07-25
   - Improve vscode start phase.
 
