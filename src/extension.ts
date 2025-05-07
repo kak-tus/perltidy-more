@@ -8,7 +8,7 @@ import { FormatError, handleTidyError, isErrnoException } from './error'
 
 export function activate(context: vscode.ExtensionContext) {
   const selector = ['perl', 'perl+mojolicious']
-  let perltidyVersion: Number = 0
+  let perltidyVersion: string = ''
 
   function getExecutable() {
     let config = vscode.workspace.getConfiguration('perltidy-more')
@@ -18,7 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
     return executable
   }
 
-  function getPerltidyVersion(): Promise<Number> {
+  function getPerltidyVersion(): Promise<string> {
     const executable = getExecutable()
 
     const args: string[] = [
@@ -42,7 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
             return
           }
 
-          const version = Number(res[0])
+          const version = res[0]
           resolve(version)
         })
       }
@@ -54,7 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const promiseVersion = getPerltidyVersion()
 
-  promiseVersion.then((version: Number) => {
+  promiseVersion.then((version: string) => {
     perltidyVersion = version
   }).catch(error => {
     vscode.window.showErrorMessage(error)
@@ -114,7 +114,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     // Only supported starts with this version
-    if (perltidyVersion >= 20210625) {
+    if (perltidyVersion.startsWith("20210625")) {
       // Terminal newline causes a problem when formatting selection.
       // We cannot determine whether the terminal newline is from original code, or appended by perltidy.
       // With terminal newline: "foo\n" -> "foo\n", "foo" -> "foo\n"
@@ -124,7 +124,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     let options = {
-      cwd: dirname(document.uri.fsPath)
+      cwd: dirname(document.uri.fsPath),
+      shell: true
     }
 
     // Support for spawn at virtual filesystems
